@@ -325,7 +325,7 @@ class ImprovedDiffusion270M(ImprovedDiffusion):
         self,
         variation_degrees,
         model_path=None,
-        batch_size=2000,
+        batch_size=100,
         timestep_respacing="100",
         use_data_parallel=True,
     ):

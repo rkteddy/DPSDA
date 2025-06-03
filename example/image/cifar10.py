@@ -28,7 +28,7 @@ pd.options.mode.copy_on_write = True
 
 
 if __name__ == "__main__":
-    exp_folder = "results/image/cifar10"
+    exp_folder = "/data/runkai/DPSDA/results/image/cifar10_eps=1_50k/"
 
     setup_logging(log_file=os.path.join(exp_folder, "log.txt"))
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
         lookahead_degree=8,
         api=api,
     )
-    population = PEPopulation(api=api, histogram_threshold=10)
+    population = PEPopulation(api=api, histogram_threshold=20)
 
     save_checkpoints = SaveCheckpoints(os.path.join(exp_folder, "checkpoint"))
     sample_images = SampleImages()
@@ -64,6 +64,6 @@ if __name__ == "__main__":
     pe_runner.run(
         num_samples_schedule=[50000] * 21,
         delta=1e-5,
-        noise_multiplier=5 * np.sqrt(2),
+        noise_multiplier=10 * np.sqrt(2),
         checkpoint_path=os.path.join(exp_folder, "checkpoint"),
     )

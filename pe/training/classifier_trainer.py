@@ -3,6 +3,7 @@ import numpy as np
 from pe.constant.data import LABEL_ID_COLUMN_NAME
 from pe.callback.callback import Callback
 from pe.metric_item import FloatMetricItem
+from pe.logging import execution_logger
 
 class ClassifierTrainer:
     """Manages the training loop for the classifier."""
@@ -66,7 +67,8 @@ class TrainingCallback(Callback):
         loss_fn,
         device="cuda",
         num_epochs_per_iteration=5,
-        batch_size=32
+        batch_size=32,
+        skip_initial_training=True
     ):
         """Constructor.
         
@@ -82,6 +84,8 @@ class TrainingCallback(Callback):
         :type num_epochs_per_iteration: int, optional
         :param batch_size: Batch size for training, defaults to 32
         :type batch_size: int, optional
+        :param skip_initial_training: Whether to skip training on initial data (iteration 0), defaults to True
+        :type skip_initial_training: bool, optional
         """
         self.model = model
         self.optimizer = optimizer
@@ -89,6 +93,7 @@ class TrainingCallback(Callback):
         self.device = device
         self.num_epochs_per_iteration = num_epochs_per_iteration
         self.batch_size = batch_size
+        self.skip_initial_training = skip_initial_training
         
     def __call__(self, syn_data):
         """Train the model on synthetic data and return training metrics.
@@ -98,6 +103,11 @@ class TrainingCallback(Callback):
         :return: Training metrics (final epoch loss)
         :rtype: list[:py:class:`pe.metric_item.FloatMetricItem`]
         """
+        if self.skip_initial_training and syn_data.metadata.iteration == 0:
+            execution_logger.info("Skipping training on initial data (iteration 0)")
+            return [FloatMetricItem(name="training_loss", value=0.0)]
+        
+        execution_logger.info(f"Training model on iteration {syn_data.metadata.iteration} data")
         self.model.train()
         final_loss = 0
         
@@ -131,5 +141,4 @@ class TrainingCallback(Callback):
             final_loss = avg_loss
             print(f"Epoch {epoch+1}/{self.num_epochs_per_iteration}, Loss: {avg_loss:.4f}")
         
-        # Return the final training loss as a metric
         return [FloatMetricItem(name="training_loss", value=final_loss)]
